@@ -8,11 +8,11 @@ function getDatabaseConnection(): PDO {
         return $pdo;
     }
 
-$host     = 'mysql-20851571-bdkooper361-c43a.l.aivencloud.com';
-$port     = 25642;
-$dbName   = 'defaultdb';
-$username = 'avnadmin';
-$password = getenv('DB_PASS') ?: 'PASTE_NEW_PASSWORD_HERE';
+    $host     = getenv('DB_HOST') ?: 'mysql-20851571-bdkooper361-c43a.l.aivencloud.com';
+    $port     = (int)(getenv('DB_PORT') ?: 25642);
+    $dbName   = getenv('DB_NAME') ?: 'defaultdb';
+    $username = getenv('DB_USER') ?: 'avnadmin';
+    $password = getenv('DB_PASS') ?: 'AVNS_Rx07fh8DmReklYNj5HG';
 
     $dsn = "mysql:host={$host};port={$port};dbname={$dbName};charset=utf8mb4";
 
@@ -26,22 +26,6 @@ $password = getenv('DB_PASS') ?: 'PASTE_NEW_PASSWORD_HERE';
 
     try {
         $pdo = new PDO($dsn, $username, $password, $options);
-
-        // Auto-initialize schema if tables do not exist
-        $check = $pdo->query("SHOW TABLES LIKE 'listings'")->rowCount();
-        if ($check === 0) {
-            $schemaFile = dirname(__DIR__) . '/database/schema.sql';
-            if (file_exists($schemaFile)) {
-                $rawSql = file_get_contents($schemaFile);
-                $statements = array_filter(array_map('trim', explode(';', $rawSql)));
-                foreach ($statements as $stmt) {
-                    if (!empty($stmt)) {
-                        $pdo->exec($stmt);
-                    }
-                }
-            }
-        }
-
         return $pdo;
     } catch (PDOException $e) {
         throw new RuntimeException("Database connection failed: " . $e->getMessage());
