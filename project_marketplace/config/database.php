@@ -26,6 +26,28 @@ function getDatabaseConnection(): PDO {
 
     try {
         $pdo = new PDO($dsn, $username, $password, $options);
+
+        // Auto-initialize core tables safely if 'users' table is missing
+        $checkUsers = $pdo->query("SHOW TABLES LIKE 'users'")->rowCount();
+        if ($checkUsers === 0) {
+            $schemaFile = dirname(__DIR__) . '/database/schema.sql';
+            if (file_exists($schemaFile)) {
+                $rawSql = file_get_contents($schemaFile);
+                // Ensure CREATE TABLE statements use IF NOT EXISTS to prevent error 1050
+                $rawSql = preg_replace('/CREATE\s+TABLE\s+(?!IF\s+NOT\s+EXISTS)/i', 'CREATE TABLE IF NOT EXISTS ', $rawSql);
+                $statements = array_filter(array_map('trim', explode(';', $rawSql)));
+                foreach ($statements as $stmt) {
+                    if (!empty($stmt)) {
+                        try {
+                            $pdo->exec($stmt);
+                        } catch (PDOException $ignore) {
+                            // Skip if duplicate or already existing
+                        }
+                    }
+                }
+            }
+        }
+
         return $pdo;
     } catch (PDOException $e) {
         throw new RuntimeException("Database connection failed: " . $e->getMessage());
