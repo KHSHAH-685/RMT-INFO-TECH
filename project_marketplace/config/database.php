@@ -8,11 +8,11 @@ function getDatabaseConnection(): PDO {
         return $pdo;
     }
 
-    $host     = getenv('DB_HOST') ?: 'mysql-20851571-bdkooper361-c43a.l.aivencloud.com';
-    $port     = (int)(getenv('DB_PORT') ?: 25642);
-    $dbName   = getenv('DB_NAME') ?: 'defaultdb';
-    $username = getenv('DB_USER') ?: 'avnadmin';
-    $password = 'AVNS_Rx07fh8DmReklYNj5HG';
+$host     = 'mysql-20851571-bdkooper361-c43a.l.aivencloud.com';
+$port     = 25642;
+$dbName   = 'defaultdb';
+$username = 'avnadmin';
+$password = 'AVNS_Rx07fh8DmReklYNj5HG'; // Replace with the exact password copied from Step 1
 
     $dsn = "mysql:host={$host};port={$port};dbname={$dbName};charset=utf8mb4";
 
