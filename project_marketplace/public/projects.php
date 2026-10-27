@@ -1,39 +1,50 @@
 <?php
 declare(strict_types=1);
-session_start();
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 require_once __DIR__ . '/../config/database.php';
 
-$pdo = getDatabaseConnection();
-
 $selectedCategory = trim($_GET['category'] ?? '');
-$searchQuery = trim($_GET['q'] ?? '');
+$searchQuery      = trim($_GET['q'] ?? '');
 
-$sql = "SELECT * FROM listings WHERE status = 'available'";
-$params = [];
+$listings = [];
+$dbError  = null;
 
-if ($selectedCategory !== '') {
-    $sql .= " AND category = :category";
-    $params['category'] = $selectedCategory;
+try {
+    $pdo = getDatabaseConnection();
+
+    $sql = "SELECT * FROM listings WHERE status = 'available'";
+    $params = [];
+
+    if ($selectedCategory !== '') {
+        $sql .= " AND category = :category";
+        $params['category'] = $selectedCategory;
+    }
+
+    if ($searchQuery !== '') {
+        $sql .= " AND (title LIKE :q OR tagline LIKE :q OR primary_tech_stack LIKE :q)";
+        $params['q'] = '%' . $searchQuery . '%';
+    }
+
+    $sql .= " ORDER BY created_at DESC";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $listings = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Throwable $e) {
+    error_log("Database Query Error in projects.php: " . $e->getMessage());
+    $dbError = "Database connectivity issue. Listings will refresh automatically once connection stabilizes.";
 }
-
-if ($searchQuery !== '') {
-    $sql .= " AND (title LIKE :q OR tagline LIKE :q OR primary_tech_stack LIKE :q)";
-    $params['q'] = '%' . $searchQuery . '%';
-}
-
-$sql .= " ORDER BY created_at DESC";
-
-$stmt = $pdo->prepare($sql);
-$stmt->execute($params);
-$listings = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $categories = [
-    'All Assets'       => '',
-    'SaaS'             => 'SaaS',
-    'Turnkey Tools'    => 'Turnkey Web Tool',
-    'E-Commerce'       => 'E-commerce',
-    'Mobile Apps'      => 'Mobile App'
+    'All Assets'    => '',
+    'SaaS'          => 'SaaS',
+    'Turnkey Tools' => 'Turnkey Web Tool',
+    'E-Commerce'    => 'E-commerce',
+    'Mobile Apps'   => 'Mobile App'
 ];
 ?>
 <!DOCTYPE html>
@@ -50,14 +61,28 @@ $categories = [
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .modal-active { display: flex !important; }
     </style>
 </head>
 <body class="market-page min-h-screen flex flex-col justify-between bg-[#080d1a] text-slate-200">
 
-    <!-- NAVBAR INCLUDED -->
-    <?php include __DIR__ . '/navbar.php'; ?>
+    <!-- NAVBAR -->
+    <?php 
+    $navbarPath = __DIR__ . '/navbar.php';
+    if (file_exists($navbarPath)) {
+        include $navbarPath;
+    }
+    ?>
 
     <main class="max-w-7xl mx-auto w-full px-6 py-10 flex-1 space-y-10">
+
+        <!-- DB Connection Notice (if applicable) -->
+        <?php if ($dbError): ?>
+            <div class="bg-amber-500/10 border border-amber-500/30 text-amber-300 px-4 py-3 rounded-2xl text-xs flex items-center justify-between">
+                <span>⚠️ <?= htmlspecialchars($dbError) ?></span>
+                <a href="projects.php" class="underline font-bold hover:text-white">Retry</a>
+            </div>
+        <?php endif; ?>
 
         <!-- Header -->
         <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-800 pb-6">
@@ -74,7 +99,7 @@ $categories = [
         <!-- SEARCH BAR & CATEGORIES -->
         <div class="space-y-4 max-w-4xl mx-auto">
             <form method="GET" action="projects.php" class="relative">
-                <?php if ($selectedCategory): ?>
+                <?php if ($selectedCategory !== ''): ?>
                     <input type="hidden" name="category" value="<?= htmlspecialchars($selectedCategory) ?>">
                 <?php endif; ?>
                 <input type="text" name="q" value="<?= htmlspecialchars($searchQuery) ?>" 
@@ -85,13 +110,23 @@ $categories = [
                 </svg>
             </form>
 
+            <!-- Categories Tabs -->
             <div class="flex items-center justify-center flex-wrap gap-2 pt-1">
                 <?php foreach ($categories as $label => $catValue): 
                     $isActive = ($selectedCategory === $catValue);
+                    $queryUrl = 'projects.php?';
+                    $urlParts = [];
+                    if ($catValue !== '') {
+                        $urlParts[] = 'category=' . urlencode($catValue);
+                    }
+                    if ($searchQuery !== '') {
+                        $urlParts[] = 'q=' . urlencode($searchQuery);
+                    }
+                    $finalUrl = !empty($urlParts) ? 'projects.php?' . implode('&', $urlParts) : 'projects.php';
                 ?>
-                    <a href="projects.php<?= $catValue !== '' ? '?category=' . urlencode($catValue) : '' ?>" 
+                    <a href="<?= htmlspecialchars($finalUrl) ?>" 
                        class="px-4 py-2 rounded-xl text-xs font-semibold transition <?= $isActive ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30' : 'bg-[#0f172a] text-slate-400 border border-slate-800 hover:text-white hover:border-slate-700' ?>">
-                        <?= $label ?>
+                        <?= htmlspecialchars($label) ?>
                     </a>
                 <?php endforeach; ?>
             </div>
@@ -107,7 +142,7 @@ $categories = [
             </div>
         <?php else: ?>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
-                <?php foreach ($listings as $l): ?>
+                <?php foreach ($listings as $index => $l): ?>
                     <article class="bg-[#0f172a] border border-slate-800 hover:border-slate-700 rounded-2xl p-6 flex flex-col justify-between transition group shadow-md hover:shadow-xl h-full">
                         
                         <div>
@@ -132,7 +167,7 @@ $categories = [
                             <!-- Tech Stack -->
                             <div class="mt-4 pt-3 border-t border-slate-800/80 flex flex-wrap gap-1.5 min-h-[32px]">
                                 <?php 
-                                $rawStack = $l['primary_tech_stack'] ?: 'PHP, MySQL';
+                                $rawStack = !empty($l['primary_tech_stack']) ? $l['primary_tech_stack'] : 'PHP, MySQL';
                                 $stack = array_filter(array_map('trim', explode(',', $rawStack)));
                                 foreach (array_slice($stack, 0, 4) as $tech): 
                                 ?>
@@ -161,7 +196,7 @@ $categories = [
                             </div>
 
                             <div class="grid grid-cols-2 gap-2">
-                                <a href="preview.php?slug=<?= urlencode($l['slug'] ?? '') ?>" 
+                                <a href="preview.php?slug=<?= urlencode((string)($l['slug'] ?? '')) ?>" 
                                     class="flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs py-2.5 rounded-xl border border-slate-700 transition">
                                     <span>Live Preview</span>
                                     <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -171,7 +206,8 @@ $categories = [
                                 </a>
                                 
                                 <button type="button" 
-                                        onclick='openProjectModal(<?= json_encode($l, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>)'
+                                        data-project='<?= htmlspecialchars(json_encode($l, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP), ENT_QUOTES, 'UTF-8') ?>'
+                                        onclick="handleModalOpen(this)"
                                         class="flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-md shadow-blue-600/20">
                                     <span>Details &rarr;</span>
                                 </button>
@@ -198,9 +234,9 @@ $categories = [
     </footer>
 
     <!-- POPUP MODAL -->
-    <div id="projectModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div id="projectModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-[#0f172a] border border-slate-700 rounded-2xl max-w-xl w-full p-6 space-y-6 relative shadow-2xl">
-            <button onclick="closeProjectModal()" class="absolute right-4 top-4 text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
+            <button type="button" onclick="closeProjectModal()" class="absolute right-4 top-4 text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
             <div>
                 <span id="modalCategory" class="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/20"></span>
                 <h2 id="modalTitle" class="text-2xl font-bold text-white mt-2"></h2>
@@ -227,7 +263,7 @@ $categories = [
             <div class="flex items-center justify-between gap-3 pt-3 border-t border-slate-800">
                 <a id="modalDemoBtn" href="#" target="_blank" class="px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">Live Demo</a>
                 <div class="flex items-center gap-2">
-                    <button onclick="closeProjectModal()" class="px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">Close</button>
+                    <button type="button" onclick="closeProjectModal()" class="px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">Close</button>
                     <a id="modalBuyBtn" href="#" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white transition">Buy Project &rarr;</a>
                 </div>
             </div>
@@ -235,30 +271,61 @@ $categories = [
     </div>
 
     <script>
+        function handleModalOpen(btn) {
+            try {
+                const project = JSON.parse(btn.getAttribute('data-project'));
+                openProjectModal(project);
+            } catch (err) {
+                console.error("Failed to parse project data:", err);
+            }
+        }
+
         function openProjectModal(project) {
             document.getElementById('modalTitle').innerText = project.title || 'Untitled';
             document.getElementById('modalTagline').innerText = project.tagline || '';
             document.getElementById('modalCategory').innerText = project.category || 'Asset';
+
             const price = parseFloat(project.asking_price || 0);
             document.getElementById('modalPrice').innerText = '$' + price.toLocaleString(undefined, { minimumFractionDigits: 2 });
+
             const revenue = parseFloat(project.monthly_revenue || 0);
             document.getElementById('modalRevenue').innerText = revenue > 0 ? '$' + revenue.toLocaleString() + '/mo' : 'Pre-revenue';
+
             document.getElementById('modalAssets').innerText = project.included_assets || 'Complete code repository and SQL file.';
             document.getElementById('modalDescription').innerText = project.description || 'No additional details provided.';
             
             const demoBtn = document.getElementById('modalDemoBtn');
             if (project.demo_url && project.demo_url.trim() !== '') {
                 demoBtn.href = project.demo_url;
+                demoBtn.removeAttribute('target');
+                demoBtn.setAttribute('target', '_blank');
                 demoBtn.onclick = null;
             } else {
                 demoBtn.href = '#';
-                demoBtn.onclick = (e) => { e.preventDefault(); alert('No live demo URL configured.'); };
+                demoBtn.onclick = (e) => { 
+                    e.preventDefault(); 
+                    alert('No live demo URL configured for this project.'); 
+                };
             }
+
             document.getElementById('modalBuyBtn').href = 'project.php?slug=' + encodeURIComponent(project.slug || '');
-            document.getElementById('projectModal').classList.remove('hidden');
+
+            const modal = document.getElementById('projectModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('modal-active');
         }
-        function closeProjectModal() { document.getElementById('projectModal').classList.add('hidden'); }
-        document.getElementById('projectModal').addEventListener('click', function(e) { if (e.target === this) closeProjectModal(); });
+
+        function closeProjectModal() {
+            const modal = document.getElementById('projectModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('modal-active');
+        }
+
+        document.getElementById('projectModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeProjectModal();
+            }
+        });
     </script>
 </body>
 </html>
