@@ -12,7 +12,7 @@ function getDatabaseConnection(): PDO {
     $port     = (int)(getenv('DB_PORT') ?: 25642);
     $dbName   = getenv('DB_NAME') ?: 'defaultdb';
     $username = getenv('DB_USER') ?: 'avnadmin';
-    $password = getenv('DB_PASS') ?: 'AVNS_Rx07fh8DmReklYNj5HG';
+    $password = 'AVNS_Rx07fh8DmReklYNj5HG';
 
     $dsn = "mysql:host={$host};port={$port};dbname={$dbName};charset=utf8mb4";
 
