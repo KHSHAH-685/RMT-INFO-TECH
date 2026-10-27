@@ -12,7 +12,7 @@ if (!empty($_SESSION['user_id'])) {
     if (($_SESSION['role'] ?? '') === 'admin') {
         header('Location: admin_dashboard.php');
     } else {
-        header('Location: dashboard.php');
+        header('Location: admin_dashboard.php');
     }
     exit;
 }
@@ -74,8 +74,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         header('Location: admin_dashboard.php');
                     } else {
                         // Direct seller/standard users to dashboard or fallback
-                        if (file_exists(__DIR__ . '/dashboard.php')) {
-                            header('Location: dashboard.php');
+                        if (file_exists(__DIR__ . '/admin_dashboard.php')) {
+                            header('Location: admin_dashboard.php');
                         } elseif (file_exists(__DIR__ . '/admin_dashboard.php')) {
                             header('Location: admin_dashboard.php');
                         } else {
