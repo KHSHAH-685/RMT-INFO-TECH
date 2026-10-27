@@ -2,12 +2,17 @@
 declare(strict_types=1);
 
 function getDatabaseConnection(): PDO {
-    // Read from Cloud Environment Variables (Render) or default to local XAMPP
-    $host     = getenv('DB_HOST') ?: '127.0.0.1';
-    $port     = getenv('DB_PORT') ?: '3306';
-    $dbName   = getenv('DB_NAME') ?: 'project_marketplace';
-    $username = getenv('DB_USER') ?: 'root';
-    $password = getenv('DB_PASS') ?: '';
+    static $pdo = null;
+
+    if ($pdo !== null) {
+        return $pdo;
+    }
+
+    $host     = getenv('DB_HOST') ?: 'mysql-20851571-bdkooper361-c43a.l.aivencloud.com';
+    $port     = (int)(getenv('DB_PORT') ?: 25642);
+    $dbName   = getenv('DB_NAME') ?: 'defaultdb';
+    $username = getenv('DB_USER') ?: 'avnadmin';
+    $password = getenv('DB_PASS') ?: 'AVNS_Rx07fh8DmReklYNj5HG';
 
     $dsn = "mysql:host={$host};port={$port};dbname={$dbName};charset=utf8mb4";
 
@@ -15,12 +20,30 @@ function getDatabaseConnection(): PDO {
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES   => false,
+        PDO::MYSQL_ATTR_SSL_CA       => true,
+        PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
     ];
 
     try {
-        return new PDO($dsn, $username, $password, $options);
+        $pdo = new PDO($dsn, $username, $password, $options);
+
+        // Auto-initialize schema if tables do not exist
+        $check = $pdo->query("SHOW TABLES LIKE 'listings'")->rowCount();
+        if ($check === 0) {
+            $schemaFile = dirname(__DIR__) . '/database/schema.sql';
+            if (file_exists($schemaFile)) {
+                $rawSql = file_get_contents($schemaFile);
+                $statements = array_filter(array_map('trim', explode(';', $rawSql)));
+                foreach ($statements as $stmt) {
+                    if (!empty($stmt)) {
+                        $pdo->exec($stmt);
+                    }
+                }
+            }
+        }
+
+        return $pdo;
     } catch (PDOException $e) {
-        error_log("Database Connection Error: " . $e->getMessage());
-        throw new RuntimeException("Database service currently unavailable.");
+        throw new RuntimeException("Database connection failed: " . $e->getMessage());
     }
 }
