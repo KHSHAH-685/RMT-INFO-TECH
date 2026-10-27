@@ -12,7 +12,7 @@ $host     = 'mysql-20851571-bdkooper361-c43a.l.aivencloud.com';
 $port     = 25642;
 $dbName   = 'defaultdb';
 $username = 'avnadmin';
-$password = 'AVNS_Rx07fh8DmReklYNj5HG'; // Replace with the exact password copied from Step 1
+$password = getenv('DB_PASS') ?: 'PASTE_NEW_PASSWORD_HERE';
 
     $dsn = "mysql:host={$host};port={$port};dbname={$dbName};charset=utf8mb4";
 
