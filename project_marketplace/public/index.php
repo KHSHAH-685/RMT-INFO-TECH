@@ -1,9 +1,9 @@
 <?php
 session_start();
 
-// Simulated backend state for standalone demonstration
+// Simulated session store
 if (!isset($_SESSION['user'])) {
-    $_SESSION['user'] = null; // null | ['name' => '...', 'role' => 'admin'|'staff'|'user']
+    $_SESSION['user'] = null; // null | ['name' => '...', 'role' => 'admin'|'staff'|'user', 'phone' => '...']
 }
 
 // Handle Logout
@@ -14,7 +14,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     exit;
 }
 
-// Quick session mock for testing roles directly via query string: ?mock_role=admin
+// Quick Mock Session role switcher (?mock_role=admin|staff|user)
 if (isset($_GET['mock_role'])) {
     $role = in_array($_GET['mock_role'], ['admin', 'staff', 'user']) ? $_GET['mock_role'] : 'user';
     $_SESSION['user'] = [
@@ -29,7 +29,7 @@ if (isset($_GET['mock_role'])) {
 
 $currentUser = $_SESSION['user'];
 
-// Sample Marketplace Catalog
+// Products Catalog (Websites, ERPs, Mobile Apps)
 $products = [
     [
         'id' => 1,
@@ -37,7 +37,7 @@ $products = [
         'category' => 'erp',
         'badge' => 'ERP System',
         'price' => '$399',
-        'desc' => 'Complete institutional & school ERP suite with student admissions, fee tokens, exam grading, and attendance tracking.',
+        'desc' => 'Complete institutional & academy ERP suite with student admissions, fee structures, ID cards, and attendance.',
         'stack' => ['PHP 8.2', 'MySQL', 'Bootstrap 5', 'REST API'],
         'rating' => '4.9/5.0 (42 sales)'
     ],
@@ -98,26 +98,30 @@ $products = [
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RMT INFO TECH — Software Marketplace & Digital Assets</title>
+    <title>RMT INFO TECH — Advanced Digital Marketplace</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-deep: #050B17;
-            --bg-card: #0A152E;
-            --bg-card-hover: #0F2044;
-            --bg-surface: #071024;
-            --border: #182B54;
-            --border-highlight: #2A488A;
-            --primary-accent: #00D2FF;
-            --primary-hover: #38BDF8;
-            --accent-glow: rgba(0, 210, 255, 0.25);
-            --text-main: #FFFFFF;
-            --text-secondary: #94A3B8;
-            --text-muted: #64748B;
-            --danger: #EF4444;
-            --success: #10B981;
+            --bg-abyss: #03091E;
+            --bg-nav: rgba(4, 12, 36, 0.88);
+            --bg-card: #071330;
+            --bg-card-hover: #0C1D4A;
+            --border-subtle: #122452;
+            --border-glow: #1D3D8F;
+            
+            --white: #FFFFFF;
+            --white-muted: #E2E8F0;
+            --white-dim: #94A3B8;
+            
+            --neon-blue: #00E5FF;
+            --neon-blue-glow: rgba(0, 229, 255, 0.35);
+            --royal-blue: #1E40AF;
+            --royal-blue-glow: rgba(30, 64, 175, 0.4);
+            
+            --danger: #FF3366;
+            --success: #00E676;
         }
 
         * {
@@ -125,220 +129,306 @@ $products = [
             margin: 0;
             padding: 0;
             font-family: 'Plus Jakarta Sans', sans-serif;
+            scroll-behavior: smooth;
         }
 
         body {
-            background-color: var(--bg-deep);
-            color: var(--text-main);
+            background-color: var(--bg-abyss);
+            color: var(--white);
             min-height: 100vh;
             line-height: 1.6;
             overflow-x: hidden;
             background-image: 
-                radial-gradient(circle at 15% 15%, rgba(0, 210, 255, 0.08) 0%, transparent 45%),
-                radial-gradient(circle at 85% 65%, rgba(30, 64, 175, 0.15) 0%, transparent 50%);
+                radial-gradient(circle at 10% 20%, rgba(0, 229, 255, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(30, 64, 175, 0.15) 0%, transparent 50%),
+                linear-gradient(180deg, rgba(3, 9, 30, 0.95) 0%, #03091E 100%);
         }
 
-        /* Container */
+        /* Scanline ambient glow effect */
+        body::before {
+            content: " ";
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            background-size: 100% 4px;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+
         .container {
-            max-width: 1280px;
+            max-width: 1320px;
             margin: 0 auto;
             padding: 0 24px;
+            position: relative;
+            z-index: 2;
         }
 
-        /* Header / Navbar */
-        header {
+        /* ================= ADVANCED FLOATING NAVBAR ================= */
+        .navbar-wrapper {
             position: sticky;
-            top: 0;
-            z-index: 50;
-            background: rgba(5, 11, 23, 0.85);
-            backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--border);
+            top: 14px;
+            z-index: 99;
+            padding: 0 20px;
+            margin-bottom: 25px;
         }
 
-        .nav-inner {
+        .navbar-dock {
+            background: var(--bg-nav);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glow);
+            border-radius: 20px;
+            padding: 10px 24px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            height: 76px;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 229, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .brand-logo {
+        .navbar-dock:hover {
+            border-color: var(--neon-blue);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7), 0 0 28px rgba(0, 229, 255, 0.2);
+        }
+
+        .brand {
             display: flex;
             align-items: center;
             gap: 14px;
             text-decoration: none;
         }
 
-        .brand-badge {
+        .brand-gem {
             width: 44px;
             height: 44px;
-            border-radius: 10px;
-            background: linear-gradient(135deg, #00D2FF, #0051FF);
+            background: linear-gradient(135deg, var(--white) 0%, var(--neon-blue) 60%, var(--royal-blue) 100%);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 800;
-            color: #050B17;
+            font-weight: 900;
             font-size: 1.15rem;
-            box-shadow: 0 0 20px rgba(0, 210, 255, 0.4);
+            color: #03091E;
+            box-shadow: 0 0 18px var(--neon-blue-glow);
+            transition: transform 0.35s ease, box-shadow 0.35s ease;
         }
 
-        .brand-text h1 {
-            font-size: 1.25rem;
+        .brand:hover .brand-gem {
+            transform: rotate(6deg) scale(1.08);
+            box-shadow: 0 0 25px rgba(0, 229, 255, 0.7);
+        }
+
+        .brand-meta h1 {
+            font-size: 1.22rem;
             font-weight: 800;
-            color: #FFF;
+            color: var(--white);
             letter-spacing: 0.5px;
             line-height: 1.1;
         }
 
-        .brand-text span {
+        .brand-meta span {
             font-size: 0.72rem;
-            color: var(--primary-accent);
+            color: var(--neon-blue);
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            font-weight: 600;
+            letter-spacing: 1.4px;
         }
 
-        nav.menu-links {
+        /* Advanced Nav Menu Items */
+        .nav-links {
             display: flex;
-            gap: 28px;
+            align-items: center;
+            gap: 6px;
+            list-style: none;
         }
 
-        nav.menu-links a {
-            color: var(--text-secondary);
+        .nav-link {
+            position: relative;
+            color: var(--white-muted);
             text-decoration: none;
-            font-size: 0.95rem;
-            font-weight: 500;
-            transition: color 0.2s;
+            font-size: 0.94rem;
+            font-weight: 600;
+            padding: 8px 18px;
+            border-radius: 10px;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        nav.menu-links a:hover, nav.menu-links a.active {
-            color: #FFF;
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 18px;
+            right: 18px;
+            height: 2px;
+            background: var(--neon-blue);
+            border-radius: 2px;
+            transform: scaleX(0);
+            transform-origin: center;
+            transition: transform 0.25s ease;
+            box-shadow: 0 0 8px var(--neon-blue);
         }
 
+        .nav-link:hover, .nav-link.active {
+            color: var(--white);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-link:hover::after, .nav-link.active::after {
+            transform: scaleX(1);
+        }
+
+        /* Nav Action Buttons */
         .nav-actions {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
         }
 
-        /* Buttons */
         .btn {
+            position: relative;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            padding: 10px 20px;
-            border-radius: 8px;
+            padding: 10px 22px;
+            border-radius: 10px;
             font-size: 0.92rem;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.25s ease;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             text-decoration: none;
-            border: none;
+            overflow: hidden;
+            border: 1px solid transparent;
         }
 
-        .btn-outline {
-            background: transparent;
-            color: #FFF;
-            border: 1px solid var(--border-highlight);
+        /* Advanced Hover Shimmer effect on buttons */
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(60deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+            transform: rotate(30deg) translate(-100%, 0);
+            transition: transform 0.6s ease;
         }
 
-        .btn-outline:hover {
-            border-color: var(--primary-accent);
-            color: var(--primary-accent);
-            background: rgba(0, 210, 255, 0.05);
+        .btn:hover::after {
+            transform: rotate(30deg) translate(100%, 0);
         }
 
-        .btn-primary {
-            background: var(--primary-accent);
-            color: #050B17;
-            box-shadow: 0 0 20px var(--accent-glow);
+        .btn-white {
+            background: var(--white);
+            color: #03091E;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
         }
 
-        .btn-primary:hover {
-            background: var(--primary-hover);
+        .btn-white:hover {
+            background: var(--white);
             transform: translateY(-2px);
-            box-shadow: 0 0 25px rgba(0, 210, 255, 0.45);
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.6);
+        }
+
+        .btn-ghost {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: var(--border-glow);
+            color: var(--white);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(0, 229, 255, 0.08);
+            border-color: var(--neon-blue);
+            color: var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+            transform: translateY(-2px);
         }
 
         .btn-danger {
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid var(--danger);
-            color: #FFA4A4;
+            background: rgba(255, 51, 102, 0.12);
+            border-color: var(--danger);
+            color: #FFA2B8;
         }
 
         .btn-danger:hover {
             background: var(--danger);
-            color: #FFF;
+            color: var(--white);
+            box-shadow: 0 0 18px rgba(255, 51, 102, 0.4);
         }
 
-        /* User Profile Pill */
+        /* User Identity Tag */
         .user-tag {
             display: flex;
             align-items: center;
             gap: 10px;
             background: var(--bg-card);
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-glow);
             padding: 6px 14px;
             border-radius: 40px;
         }
 
-        .role-badge {
-            font-size: 0.7rem;
+        .badge-role {
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 6px;
             text-transform: uppercase;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-weight: 700;
+            letter-spacing: 0.5px;
         }
 
-        .role-admin { background: #DC2626; color: #FFF; }
-        .role-staff { background: #2563EB; color: #FFF; }
-        .role-user { background: #059669; color: #FFF; }
+        .badge-admin { background: #E11D48; color: #FFF; }
+        .badge-staff { background: #2563EB; color: #FFF; }
+        .badge-user { background: #059669; color: #FFF; }
 
-        /* Hero Section */
+        /* ================= HERO SECTION ================= */
         .hero {
-            padding: 85px 0 60px;
+            padding: 70px 0 50px;
             text-align: center;
         }
 
-        .hero-pill {
+        .hero-badge {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: rgba(0, 210, 255, 0.08);
-            border: 1px solid rgba(0, 210, 255, 0.3);
-            color: var(--primary-accent);
-            padding: 6px 16px;
+            background: rgba(0, 229, 255, 0.06);
+            border: 1px solid rgba(0, 229, 255, 0.3);
+            color: var(--neon-blue);
+            padding: 6px 18px;
             border-radius: 30px;
             font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 24px;
+            font-weight: 700;
+            margin-bottom: 22px;
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.15);
         }
 
         .hero h2 {
-            font-size: 3.5rem;
-            font-weight: 800;
-            letter-spacing: -1.5px;
-            line-height: 1.15;
+            font-size: 3.8rem;
+            font-weight: 900;
+            line-height: 1.12;
+            letter-spacing: -1.8px;
             margin-bottom: 20px;
+            color: var(--white);
         }
 
-        .hero h2 span {
-            background: linear-gradient(135deg, #FFF 40%, var(--primary-accent) 100%);
+        .hero h2 span.gradient-text {
+            background: linear-gradient(135deg, #FFFFFF 30%, var(--neon-blue) 80%, #3B82F6 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
         .hero p {
-            color: var(--text-secondary);
             font-size: 1.15rem;
-            max-width: 720px;
+            color: var(--white-dim);
+            max-width: 740px;
             margin: 0 auto 36px;
         }
 
         /* Filter Tabs */
-        .filter-tabs {
+        .catalog-nav {
             display: flex;
             justify-content: center;
             gap: 12px;
@@ -346,152 +436,157 @@ $products = [
             flex-wrap: wrap;
         }
 
-        .tab-btn {
+        .filter-btn {
             background: var(--bg-card);
-            color: var(--text-secondary);
-            border: 1px solid var(--border);
-            padding: 10px 22px;
-            border-radius: 30px;
+            color: var(--white-dim);
+            border: 1px solid var(--border-subtle);
+            padding: 11px 24px;
+            border-radius: 40px;
             font-size: 0.92rem;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.25s ease;
         }
 
-        .tab-btn:hover {
-            color: #FFF;
-            border-color: var(--primary-accent);
+        .filter-btn:hover {
+            color: var(--white);
+            border-color: var(--neon-blue);
+            transform: translateY(-2px);
         }
 
-        .tab-btn.active {
-            background: #FFF;
-            color: #050B17;
-            border-color: #FFF;
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        .filter-btn.active {
+            background: var(--white);
+            color: #03091E;
+            border-color: var(--white);
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
+            transform: scale(1.03);
         }
 
-        /* Product Grid */
+        /* ================= PRODUCT CARDS & 3D HOVER ================= */
         .product-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-            gap: 28px;
-            margin-bottom: 80px;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 30px;
+            margin-bottom: 90px;
         }
 
         .product-card {
             background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 24px;
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            padding: 26px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            transition: transform 0.25s ease, border-color 0.25s ease;
             position: relative;
             overflow: hidden;
+            transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
         }
 
         .product-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--border-highlight);
+            transform: translateY(-8px);
             background: var(--bg-card-hover);
+            border-color: var(--neon-blue);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 229, 255, 0.25);
         }
 
         .product-card::before {
-            content: "";
+            content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
+            top: 0; left: 0; right: 0;
             height: 3px;
-            background: linear-gradient(90deg, transparent, var(--primary-accent), transparent);
+            background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
             opacity: 0;
-            transition: opacity 0.3s;
+            transition: opacity 0.3s ease;
         }
 
         .product-card:hover::before {
             opacity: 1;
         }
 
-        .card-top {
+        .card-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
             margin-bottom: 16px;
         }
 
-        .cat-badge {
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--primary-accent);
+        .category-pill {
+            font-size: 0.74rem;
+            font-weight: 800;
+            letter-spacing: 1px;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
-            background: rgba(0, 210, 255, 0.1);
-            padding: 4px 10px;
+            padding: 4px 12px;
             border-radius: 6px;
+            background: rgba(0, 229, 255, 0.12);
+            color: var(--neon-blue);
+            border: 1px solid rgba(0, 229, 255, 0.25);
         }
 
-        .price-badge {
-            font-size: 1.45rem;
-            font-weight: 800;
-            color: #FFF;
+        .price-tag {
             font-family: 'JetBrains Mono', monospace;
+            font-size: 1.55rem;
+            font-weight: 800;
+            color: var(--white);
         }
 
         .product-card h3 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            color: #FFF;
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            color: var(--white);
+            line-height: 1.3;
         }
 
         .product-card p {
-            font-size: 0.92rem;
-            color: var(--text-secondary);
-            margin-bottom: 20px;
-            min-height: 65px;
+            color: var(--white-dim);
+            font-size: 0.93rem;
+            margin-bottom: 22px;
+            min-height: 64px;
         }
 
-        .stack-list {
+        .stack-pills {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
-            margin-bottom: 22px;
+            gap: 7px;
+            margin-bottom: 24px;
         }
 
-        .stack-item {
+        .stack-chip {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-            background: #050B17;
-            border: 1px solid var(--border);
-            padding: 3px 8px;
-            border-radius: 4px;
-            color: #CBD5E1;
+            font-size: 0.76rem;
+            background: #03091E;
+            color: var(--white-muted);
+            border: 1px solid var(--border-subtle);
+            padding: 3px 10px;
+            border-radius: 6px;
         }
 
-        .card-bottom {
+        .card-footer {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            border-top: 1px solid var(--border-subtle);
             padding-top: 18px;
         }
 
-        .rating-text {
-            font-size: 0.8rem;
-            color: var(--text-muted);
+        .rating-badge {
+            font-size: 0.82rem;
+            color: #FBBF24;
+            font-weight: 600;
         }
 
-        /* Modals */
+        /* ================= MODALS & OVERLAYS ================= */
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(5, 11, 23, 0.85);
-            backdrop-filter: blur(12px);
+            background: rgba(3, 9, 30, 0.88);
+            backdrop-filter: blur(14px);
             display: none;
             align-items: center;
             justify-content: center;
-            z-index: 100;
+            z-index: 1000;
             padding: 20px;
         }
 
@@ -500,164 +595,169 @@ $products = [
         }
 
         .modal-box {
-            background: #0A152E;
-            border: 1px solid var(--border-highlight);
-            border-radius: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-glow);
+            border-radius: 24px;
             width: 100%;
-            max-width: 480px;
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
-            position: relative;
+            max-width: 520px;
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.9), 0 0 35px rgba(0, 229, 255, 0.15);
+            animation: modalPop 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             overflow: hidden;
-            animation: fadeIn 0.25s ease-out;
         }
 
         .modal-box.wide {
-            max-width: 780px;
+            max-width: 820px;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.96); }
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.92); }
             to { opacity: 1; transform: scale(1); }
         }
 
-        .modal-header {
-            padding: 24px 28px;
-            border-bottom: 1px solid var(--border);
+        .modal-head {
+            padding: 22px 28px;
+            border-bottom: 1px solid var(--border-subtle);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: rgba(255, 255, 255, 0.02);
         }
 
-        .modal-header h3 {
-            font-size: 1.3rem;
-            font-weight: 700;
+        .modal-head h3 {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--white);
         }
 
-        .close-btn {
-            background: none;
+        .btn-close {
+            background: transparent;
             border: none;
-            color: var(--text-secondary);
-            font-size: 1.5rem;
+            color: var(--white-dim);
+            font-size: 1.8rem;
             cursor: pointer;
             line-height: 1;
+            transition: color 0.2s;
         }
 
-        .close-btn:hover {
-            color: #FFF;
+        .btn-close:hover {
+            color: var(--white);
         }
 
-        .modal-body {
+        .modal-content {
             padding: 28px;
         }
 
-        /* Form Controls */
-        .form-group {
+        /* Form Styles */
+        .field {
             margin-bottom: 18px;
         }
 
-        .form-group label {
+        .field label {
             display: block;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #CBD5E1;
+            font-size: 0.84rem;
+            font-weight: 700;
+            color: var(--white-muted);
             margin-bottom: 8px;
         }
 
-        .form-input, .form-select {
+        .input-box, .select-box, .textarea-box {
             width: 100%;
-            background: #050B17;
-            border: 1px solid var(--border);
-            color: #FFF;
-            padding: 12px 14px;
-            border-radius: 8px;
+            background: #03091E;
+            border: 1px solid var(--border-subtle);
+            color: var(--white);
+            padding: 13px 16px;
+            border-radius: 10px;
             font-size: 0.95rem;
             outline: none;
-            transition: border-color 0.2s;
+            transition: all 0.25s ease;
         }
 
-        .form-input:focus, .form-select:focus {
-            border-color: var(--primary-accent);
-            box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
+        .input-box:focus, .select-box:focus, .textarea-box:focus {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 14px rgba(0, 229, 255, 0.25);
         }
 
-        .role-switch-container {
+        .role-switch {
             display: flex;
-            background: #050B17;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 4px;
+            background: #03091E;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 5px;
             margin-bottom: 22px;
         }
 
-        .role-radio-btn {
+        .role-tab {
             flex: 1;
             text-align: center;
-            padding: 8px 12px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--text-secondary);
+            padding: 9px;
+            font-size: 0.86rem;
+            font-weight: 700;
+            color: var(--white-dim);
             cursor: pointer;
-            border-radius: 6px;
+            border-radius: 8px;
             transition: all 0.2s;
         }
 
-        .role-radio-btn.active {
-            background: #FFF;
-            color: #050B17;
+        .role-tab.active {
+            background: var(--white);
+            color: #03091E;
+            box-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
         }
 
-        /* OTP Input Boxes */
-        .otp-group {
+        /* OTP Code Blocks */
+        .otp-inputs {
             display: flex;
             gap: 10px;
             justify-content: center;
-            margin: 20px 0;
+            margin: 22px 0;
         }
 
-        .otp-box {
-            width: 48px;
-            height: 54px;
-            background: #050B17;
-            border: 1px solid var(--border-highlight);
+        .otp-digit {
+            width: 50px;
+            height: 56px;
+            background: #03091E;
+            border: 1px solid var(--border-glow);
             text-align: center;
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-family: 'JetBrains Mono', monospace;
-            font-weight: 700;
-            color: var(--primary-accent);
-            border-radius: 8px;
+            font-weight: 800;
+            color: var(--neon-blue);
+            border-radius: 10px;
         }
 
-        /* Admin Staff Table */
-        .staff-table {
+        /* Table */
+        .modern-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.88rem;
+            font-size: 0.9rem;
             margin-top: 15px;
         }
 
-        .staff-table th, .staff-table td {
-            padding: 12px 14px;
+        .modern-table th, .modern-table td {
+            padding: 14px;
             text-align: left;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--border-subtle);
         }
 
-        .staff-table th {
-            color: var(--text-muted);
+        .modern-table th {
+            color: var(--white-dim);
+            font-size: 0.76rem;
             text-transform: uppercase;
-            font-size: 0.75rem;
-            font-weight: 700;
+            font-weight: 800;
+            letter-spacing: 0.5px;
         }
 
-        /* Footer */
+        /* ================= FOOTER ================= */
         footer {
-            border-top: 1px solid var(--border);
-            background: #040914;
-            padding: 40px 0;
-            color: var(--text-muted);
-            font-size: 0.88rem;
+            border-top: 1px solid var(--border-subtle);
+            background: #020617;
+            padding: 45px 0;
+            color: var(--white-dim);
+            font-size: 0.9rem;
+            margin-top: 40px;
         }
 
-        .footer-inner {
+        .footer-flex {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -665,102 +765,115 @@ $products = [
             gap: 20px;
         }
 
-        .footer-links a {
-            color: var(--text-secondary);
+        .footer-nav a {
+            color: var(--white-muted);
             text-decoration: none;
-            margin-left: 20px;
+            margin-left: 24px;
+            font-weight: 600;
+            transition: color 0.2s;
         }
 
-        .footer-links a:hover {
-            color: #FFF;
+        .footer-nav a:hover {
+            color: var(--neon-blue);
+        }
+
+        /* Responsive Mobile Drawer */
+        @media (max-width: 900px) {
+            .nav-links { display: none; }
+            .hero h2 { font-size: 2.6rem; }
+            .product-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Top Navigation -->
-    <header>
-        <div class="container nav-inner">
-            <a href="index.php" class="brand-logo">
-                <div class="brand-badge">RMT</div>
-                <div class="brand-text">
+    <!-- ================= FLOATING DOCK NAVBAR ================= -->
+    <div class="navbar-wrapper">
+        <header class="navbar-dock container">
+            <!-- Brand -->
+            <a href="index.php" class="brand">
+                <div class="brand-gem">RMT</div>
+                <div class="brand-meta">
                     <h1>RMT INFO TECH</h1>
                     <span>Digital Marketplace</span>
                 </div>
             </a>
 
-            <nav class="menu-links">
-                <a href="index.php" class="active">Marketplace</a>
-                <a href="#projects" onclick="filterCatalog('all')">All Products</a>
-                <a href="#erp" onclick="filterCatalog('erp')">ERPs</a>
-                <a href="#apps" onclick="filterCatalog('mobile')">Mobile Apps</a>
-                <a href="#web" onclick="filterCatalog('website')">Web & SaaS</a>
+            <!-- Full Navigation Menu (Home, About Us, Contact Us, Marketplace) -->
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="index.php" class="nav-link active">Home</a></li>
+                    <li><a href="#projects" onclick="filterCatalog('all')" class="nav-link">Marketplace</a></li>
+                    <li><a href="javascript:void(0)" onclick="openModal('aboutModal')" class="nav-link">About Us</a></li>
+                    <li><a href="javascript:void(0)" onclick="openModal('contactModal')" class="nav-link">Contact Us</a></li>
+                </ul>
             </nav>
 
+            <!-- Actions -->
             <div class="nav-actions">
                 <?php if ($currentUser): ?>
                     <div class="user-tag">
-                        <span><?= htmlspecialchars($currentUser['name']) ?></span>
-                        <span class="role-badge role-<?= htmlspecialchars($currentUser['role']) ?>">
+                        <span style="font-size: 0.88rem; font-weight: 700;"><?= htmlspecialchars($currentUser['name']) ?></span>
+                        <span class="badge-role badge-<?= htmlspecialchars($currentUser['role']) ?>">
                             <?= strtoupper(htmlspecialchars($currentUser['role'])) ?>
                         </span>
                     </div>
 
                     <?php if ($currentUser['role'] === 'admin'): ?>
-                        <button class="btn btn-outline" onclick="openModal('adminStaffModal')">
+                        <button class="btn btn-ghost" onclick="openModal('adminStaffModal')">
                             ⚙ Staff Control
                         </button>
                     <?php endif; ?>
 
-                    <a href="index.php?action=logout" class="btn btn-danger">Log Out</a>
+                    <a href="index.php?action=logout" class="btn btn-danger">Sign Out</a>
                 <?php else: ?>
-                    <button class="btn btn-outline" onclick="openModal('loginModal')">Sign In</button>
-                    <button class="btn btn-primary" onclick="openModal('registerModal')">Create Account</button>
+                    <button class="btn btn-ghost" onclick="openModal('loginModal')">Sign In</button>
+                    <button class="btn btn-white" onclick="openModal('registerModal')">Create Account</button>
                 <?php endif; ?>
             </div>
-        </div>
-    </header>
+        </header>
+    </div>
 
-    <!-- Main Hero -->
+    <!-- ================= HERO SECTION ================= -->
     <section class="hero">
         <div class="container">
-            <div class="hero-pill">
-                <span>⚡ Next-Generation Digital Asset Platform</span>
+            <div class="hero-badge">
+                <span>✦ Advanced Pure White & Deep Blue Ecosystem</span>
             </div>
-            <h2>Production-Ready Architecture,<br><span>Zero Delay Delivery.</span></h2>
-            <p>Direct ownership of enterprise-grade Web systems, comprehensive institutional ERP suites, and native Kotlin mobile apps with verified handover.</p>
+            <h2>Next-Gen Codebases,<br><span class="gradient-text">Instant Deployment.</span></h2>
+            <p>Direct ownership of production-ready Web platforms, institutional ERP architectures, and native Android mobile apps with verified escrow transfer.</p>
 
-            <!-- Filter Buttons -->
-            <div class="filter-tabs" id="catalog-filters">
-                <button class="tab-btn active" onclick="filterCatalog('all', this)">All Solutions</button>
-                <button class="tab-btn" onclick="filterCatalog('erp', this)">Institutional ERPs</button>
-                <button class="tab-btn" onclick="filterCatalog('website', this)">Websites & SaaS</button>
-                <button class="tab-btn" onclick="filterCatalog('mobile', this)">Native Mobile Apps</button>
+            <!-- Catalog Category Filter -->
+            <div class="catalog-nav" id="catalog-filters">
+                <button class="filter-btn active" onclick="filterCatalog('all', this)">All Solutions</button>
+                <button class="filter-btn" onclick="filterCatalog('erp', this)">Institutional ERPs</button>
+                <button class="filter-btn" onclick="filterCatalog('website', this)">Web & SaaS</button>
+                <button class="filter-btn" onclick="filterCatalog('mobile', this)">Mobile Apps</button>
             </div>
         </div>
     </section>
 
-    <!-- Marketplace Products Grid -->
-    <main class="container">
-        <div class="product-grid" id="productContainer">
+    <!-- ================= MARKETPLACE GRID ================= -->
+    <main class="container" id="projects">
+        <div class="product-grid" id="productGrid">
             <?php foreach ($products as $p): ?>
                 <div class="product-card" data-category="<?= $p['category'] ?>">
                     <div>
-                        <div class="card-top">
-                            <span class="cat-badge"><?= $p['badge'] ?></span>
-                            <span class="price-badge"><?= $p['price'] ?></span>
+                        <div class="card-header">
+                            <span class="category-pill"><?= $p['badge'] ?></span>
+                            <span class="price-tag"><?= $p['price'] ?></span>
                         </div>
                         <h3><?= htmlspecialchars($p['title']) ?></h3>
                         <p><?= htmlspecialchars($p['desc']) ?></p>
-                        <div class="stack-list">
+                        <div class="stack-pills">
                             <?php foreach ($p['stack'] as $tech): ?>
-                                <span class="stack-item"><?= htmlspecialchars($tech) ?></span>
+                                <span class="stack-chip"><?= htmlspecialchars($tech) ?></span>
                             <?php endforeach; ?>
                         </div>
                     </div>
-                    <div class="card-bottom">
-                        <span class="rating-text">★ <?= $p['rating'] ?></span>
-                        <button class="btn btn-primary" style="padding: 7px 14px; font-size: 0.85rem;" onclick="alert('Proceeding to live demo & escrow transfer for: <?= addslashes($p['title']) ?>')">
+                    <div class="card-footer">
+                        <span class="rating-badge">★ <?= $p['rating'] ?></span>
+                        <button class="btn btn-white" style="padding: 8px 16px; font-size: 0.85rem;" onclick="alert('Proceeding to live demo and escrow checkout for: <?= addslashes($p['title']) ?>')">
                             Acquire Now →
                         </button>
                     </div>
@@ -769,116 +882,167 @@ $products = [
         </div>
     </main>
 
-    <!-- ==================== MODALS ==================== -->
+    <!-- ================= MODALS ================= -->
 
-    <!-- 1. LOGIN MODAL (Admin / Staff / User) -->
+    <!-- 1. ABOUT US MODAL -->
+    <div class="modal-overlay" id="aboutModal">
+        <div class="modal-box">
+            <div class="modal-head">
+                <h3>About RMT INFO TECH</h3>
+                <button class="btn-close" onclick="closeModal('aboutModal')">&times;</button>
+            </div>
+            <div class="modal-content">
+                <p style="color: var(--white-muted); margin-bottom: 16px; font-size: 0.95rem;">
+                    <b>RMT INFO TECH</b> is a premier software architecture exchange platform designed to bridge technical creators with institutions and enterprises.
+                </p>
+                <div style="background: #03091E; border: 1px solid var(--border-subtle); padding: 18px; border-radius: 12px; margin-bottom: 20px;">
+                    <div style="color: var(--neon-blue); font-weight: 700; margin-bottom: 6px;">✦ Our Core Verticals:</div>
+                    <ul style="color: var(--white-dim); font-size: 0.9rem; padding-left: 20px; line-height: 1.8;">
+                        <li><b>Institutional ERP Systems:</b> Comprehensive school, institute, and hospital platforms.</li>
+                        <li><b>Websites & SaaS Products:</b> Complete turnkey marketplaces and POS tools.</li>
+                        <li><b>Native Mobile Apps:</b> Kotlin Jetpack Compose and Android SDK software.</li>
+                    </ul>
+                </div>
+                <button class="btn btn-white" style="width: 100%;" onclick="closeModal('aboutModal')">Close Window</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. CONTACT US MODAL -->
+    <div class="modal-overlay" id="contactModal">
+        <div class="modal-box">
+            <div class="modal-head">
+                <h3>Contact Engineering Support</h3>
+                <button class="btn-close" onclick="closeModal('contactModal')">&times;</button>
+            </div>
+            <div class="modal-content">
+                <form onsubmit="handleContactSubmit(event)">
+                    <div class="field">
+                        <label>Your Name</label>
+                        <input type="text" class="input-box" placeholder="e.g. John Doe" required>
+                    </div>
+                    <div class="field">
+                        <label>Contact Email or Phone Number</label>
+                        <input type="text" class="input-box" placeholder="e.g. john@example.com or +91..." required>
+                    </div>
+                    <div class="field">
+                        <label>Project Inquiry or Message</label>
+                        <textarea class="textarea-box" rows="4" placeholder="How can our technical team assist you?" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-white" style="width: 100%;">Transmit Message →</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. LOGIN MODAL (Admin / Staff / User) -->
     <div class="modal-overlay" id="loginModal">
         <div class="modal-box">
-            <div class="modal-header">
-                <h3>System Sign In</h3>
-                <button class="close-btn" onclick="closeModal('loginModal')">&times;</button>
+            <div class="modal-head">
+                <h3>System Authorization</h3>
+                <button class="btn-close" onclick="closeModal('loginModal')">&times;</button>
             </div>
-            <div class="modal-body">
-                <!-- Role Selector -->
-                <div class="role-switch-container">
-                    <div class="role-radio-btn active" onclick="setLoginRole('user', this)">User</div>
-                    <div class="role-radio-btn" onclick="setLoginRole('staff', this)">Staff</div>
-                    <div class="role-radio-btn" onclick="setLoginRole('admin', this)">Admin</div>
+            <div class="modal-content">
+                <!-- Role selector -->
+                <div class="role-switch">
+                    <div class="role-tab active" onclick="setLoginRole('user', this)">User</div>
+                    <div class="role-tab" onclick="setLoginRole('staff', this)">Staff</div>
+                    <div class="role-tab" onclick="setLoginRole('admin', this)">Admin</div>
                 </div>
 
                 <form onsubmit="handleLogin(event)">
                     <input type="hidden" id="loginSelectedRole" value="user">
 
-                    <div class="form-group">
-                        <label id="loginIdLabel">Email or Mobile Number</label>
-                        <input type="text" id="loginIdentifier" class="form-input" placeholder="e.g. +91 9876543210 or user@example.com" required>
+                    <div class="field">
+                        <label id="loginIdLabel">Mobile Number or Email</label>
+                        <input type="text" id="loginIdentifier" class="input-box" placeholder="e.g. +91 9876543210 or user@example.com" required>
                     </div>
 
-                    <div class="form-group">
+                    <div class="field">
                         <label>Secure Password</label>
-                        <input type="password" id="loginPassword" class="form-input" placeholder="••••••••••••" required>
+                        <input type="password" id="loginPassword" class="input-box" placeholder="••••••••••••" required>
                     </div>
 
-                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px; padding: 12px;">
+                    <button type="submit" class="btn btn-white" style="width: 100%; padding: 13px; margin-top: 10px;">
                         Authenticate as <span id="loginBtnRoleLabel" style="text-transform: capitalize; margin-left: 4px;">User</span>
                     </button>
 
-                    <div style="text-align: center; margin-top: 16px; font-size: 0.85rem; color: var(--text-secondary);">
+                    <div style="text-align: center; margin-top: 18px; font-size: 0.86rem; color: var(--white-dim);">
                         Don't have an account yet? 
-                        <a href="javascript:void(0)" onclick="switchModal('loginModal', 'registerModal')" style="color: var(--primary-accent); text-decoration: none; font-weight: 600;">Register Here</a>
+                        <a href="javascript:void(0)" onclick="switchModal('loginModal', 'registerModal')" style="color: var(--neon-blue); text-decoration: none; font-weight: 700;">Create User Account</a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- 2. USER REGISTRATION WITH PHONE OTP VERIFICATION -->
+    <!-- 4. USER REGISTRATION + MANDATORY PHONE OTP -->
     <div class="modal-overlay" id="registerModal">
         <div class="modal-box">
-            <div class="modal-header">
-                <h3>Create User Account</h3>
-                <button class="close-btn" onclick="closeModal('registerModal')">&times;</button>
+            <div class="modal-head">
+                <h3>New User Registration</h3>
+                <button class="btn-close" onclick="closeModal('registerModal')">&times;</button>
             </div>
-            <div class="modal-body">
-                <!-- Step 1: Input details & Phone -->
+            <div class="modal-content">
+                <!-- Step 1: Info Form -->
                 <div id="regStep1">
                     <form onsubmit="sendRegistrationOtp(event)">
-                        <div class="form-group">
+                        <div class="field">
                             <label>Full Legal Name</label>
-                            <input type="text" id="regFullName" class="form-input" placeholder="e.g. John Doe" required>
+                            <input type="text" id="regFullName" class="input-box" placeholder="e.g. Alex Henderson" required>
                         </div>
 
-                        <div class="form-group">
+                        <div class="field">
                             <label>Email Address</label>
-                            <input type="email" id="regEmail" class="form-input" placeholder="john@example.com" required>
+                            <input type="email" id="regEmail" class="input-box" placeholder="alex@domain.com" required>
                         </div>
 
-                        <div class="form-group">
-                            <label>Mobile Number (For Mandatory OTP Verification)</label>
+                        <div class="field">
+                            <label>Mobile Number (For Mandatory Phone Authentication)</label>
                             <div style="display: flex; gap: 8px;">
-                                <input type="text" value="+91" readonly class="form-input" style="width: 75px; text-align: center; color: var(--primary-accent); font-weight: 600;">
-                                <input type="tel" id="regPhone" class="form-input" placeholder="9876543210" pattern="[0-9]{10}" maxlength="10" required>
+                                <input type="text" value="+91" readonly class="input-box" style="width: 75px; text-align: center; color: var(--neon-blue); font-weight: 800;">
+                                <input type="tel" id="regPhone" class="input-box" placeholder="9876543210" pattern="[0-9]{10}" maxlength="10" required>
                             </div>
-                            <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; display: block;">A 6-digit OTP passcode will be dispatched to this number.</span>
+                            <span style="font-size: 0.75rem; color: var(--white-dim); margin-top: 5px; display: block;">A 6-digit SMS verification code will be dispatched to this device.</span>
                         </div>
 
-                        <div class="form-group">
+                        <div class="field">
                             <label>Account Password</label>
-                            <input type="password" id="regPassword" class="form-input" placeholder="••••••••••••" minlength="6" required>
+                            <input type="password" id="regPassword" class="input-box" placeholder="••••••••••••" minlength="6" required>
                         </div>
 
-                        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; margin-top: 10px;">
-                            Verify Phone & Continue →
+                        <button type="submit" class="btn btn-white" style="width: 100%; padding: 13px; margin-top: 10px;">
+                            Verify Mobile & Continue →
                         </button>
                     </form>
                 </div>
 
-                <!-- Step 2: OTP Verification Screen -->
+                <!-- Step 2: OTP Entry -->
                 <div id="regStep2" style="display: none; text-align: center;">
-                    <div style="margin-bottom: 12px; font-size: 2rem;">📱</div>
-                    <h4 style="font-size: 1.15rem; margin-bottom: 6px;">Phone Verification Code</h4>
-                    <p style="font-size: 0.85rem; color: var(--text-secondary);">
-                        We sent a 6-digit verification code to <br><b id="otpTargetPhone" style="color: #FFF;"></b>
+                    <div style="font-size: 2.2rem; margin-bottom: 10px;">📱</div>
+                    <h4 style="font-size: 1.2rem; margin-bottom: 6px;">SMS Security Verification</h4>
+                    <p style="font-size: 0.88rem; color: var(--white-dim);">
+                        Code dispatched to <b id="otpTargetPhone" style="color: var(--white);"></b>
                     </p>
 
-                    <div class="otp-group">
-                        <input type="text" maxlength="1" class="otp-box" oninput="focusNext(this, 0)" autofocus>
-                        <input type="text" maxlength="1" class="otp-box" oninput="focusNext(this, 1)">
-                        <input type="text" maxlength="1" class="otp-box" oninput="focusNext(this, 2)">
-                        <input type="text" maxlength="1" class="otp-box" oninput="focusNext(this, 3)">
-                        <input type="text" maxlength="1" class="otp-box" oninput="focusNext(this, 4)">
-                        <input type="text" maxlength="1" class="otp-box" oninput="focusNext(this, 5)">
+                    <div class="otp-inputs">
+                        <input type="text" maxlength="1" class="otp-digit" oninput="focusNext(this, 0)" autofocus>
+                        <input type="text" maxlength="1" class="otp-digit" oninput="focusNext(this, 1)">
+                        <input type="text" maxlength="1" class="otp-digit" oninput="focusNext(this, 2)">
+                        <input type="text" maxlength="1" class="otp-digit" oninput="focusNext(this, 3)">
+                        <input type="text" maxlength="1" class="otp-digit" oninput="focusNext(this, 4)">
+                        <input type="text" maxlength="1" class="otp-digit" oninput="focusNext(this, 5)">
                     </div>
 
-                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 20px;">
-                        Resend code in <span id="otpTimer" style="color: var(--primary-accent); font-weight: 600;">0:59</span>
+                    <div style="font-size: 0.82rem; color: var(--white-dim); margin-bottom: 22px;">
+                        Resend code in <span id="otpTimer" style="color: var(--neon-blue); font-weight: 700;">0:59</span>
                     </div>
 
-                    <button type="button" class="btn btn-primary" style="width: 100%; padding: 12px;" onclick="confirmOtpAndActivate()">
-                        Verify & Complete Registration
+                    <button type="button" class="btn btn-white" style="width: 100%; padding: 13px;" onclick="confirmOtpAndActivate()">
+                        Validate & Activate Account
                     </button>
                     
-                    <button type="button" class="btn btn-outline" style="width: 100%; margin-top: 10px;" onclick="backToRegStep1()">
+                    <button type="button" class="btn btn-ghost" style="width: 100%; margin-top: 10px;" onclick="backToRegStep1()">
                         ← Change Number
                     </button>
                 </div>
@@ -886,64 +1050,64 @@ $products = [
         </div>
     </div>
 
-    <!-- 3. ADMIN PORTAL MODAL (Staff Management & Add Staff) -->
+    <!-- 5. ADMIN STAFF CONTROL & ADD STAFF -->
     <div class="modal-overlay" id="adminStaffModal">
         <div class="modal-box wide">
-            <div class="modal-header">
-                <h3>Admin Command Center — Staff Management</h3>
-                <button class="close-btn" onclick="closeModal('adminStaffModal')">&times;</button>
+            <div class="modal-head">
+                <h3>Admin Command — Staff Roster Control</h3>
+                <button class="btn-close" onclick="closeModal('adminStaffModal')">&times;</button>
             </div>
-            <div class="modal-body">
-                <!-- Add Staff Option Form -->
-                <div style="background: #050B17; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-                    <h4 style="color: var(--primary-accent); margin-bottom: 14px; font-size: 1rem;">+ Add New Technical Staff Officer</h4>
+            <div class="modal-content">
+                <!-- Add Staff Option -->
+                <div style="background: #03091E; border: 1px solid var(--border-subtle); border-radius: 14px; padding: 22px; margin-bottom: 24px;">
+                    <h4 style="color: var(--neon-blue); margin-bottom: 14px; font-size: 1.05rem;">+ Add New Staff Member</h4>
                     <form onsubmit="handleCreateStaff(event)" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; align-items: end;">
                         <div>
-                            <label style="font-size: 0.8rem; color: #CBD5E1;">Staff Name</label>
-                            <input type="text" id="staffName" class="form-input" placeholder="e.g. Alex Henderson" required>
+                            <label style="font-size: 0.8rem; color: var(--white-dim);">Staff Full Name</label>
+                            <input type="text" id="staffName" class="input-box" placeholder="e.g. David Ross" required>
                         </div>
                         <div>
-                            <label style="font-size: 0.8rem; color: #CBD5E1;">Official Email</label>
-                            <input type="email" id="staffEmail" class="form-input" placeholder="alex@rmtinfotech.com" required>
+                            <label style="font-size: 0.8rem; color: var(--white-dim);">Corporate Email</label>
+                            <input type="email" id="staffEmail" class="input-box" placeholder="david@rmtinfotech.com" required>
                         </div>
                         <div>
-                            <label style="font-size: 0.8rem; color: #CBD5E1;">Department / Role</label>
-                            <select id="staffDept" class="form-select">
-                                <option value="ERP Operations">ERP Operations</option>
-                                <option value="Mobile Core">Mobile Core (Android)</option>
-                                <option value="FullStack & Cloud">FullStack & Cloud</option>
-                                <option value="Security / Escrow">Escrow & Verification</option>
+                            <label style="font-size: 0.8rem; color: var(--white-dim);">Assigned Department</label>
+                            <select id="staffDept" class="select-box">
+                                <option value="Institutional ERPs">Institutional ERPs</option>
+                                <option value="Mobile Engineering">Mobile Engineering (Kotlin)</option>
+                                <option value="Web & SaaS Division">Web & SaaS Division</option>
+                                <option value="Escrow Verification">Escrow Verification</option>
                             </select>
                         </div>
                         <div>
-                            <button type="submit" class="btn btn-primary" style="width: 100%;">Create Staff Account</button>
+                            <button type="submit" class="btn btn-white" style="width: 100%;">Create Staff</button>
                         </div>
                     </form>
                 </div>
 
-                <!-- Active Staff Directory -->
-                <h4 style="font-size: 0.95rem; margin-bottom: 8px;">Active Staff Directory</h4>
+                <!-- Existing Staff Directory -->
+                <h4 style="font-size: 1rem; margin-bottom: 8px;">Active Staff Directory</h4>
                 <div style="overflow-x: auto;">
-                    <table class="staff-table" id="staffDirectoryTable">
+                    <table class="modern-table" id="staffDirectoryTable">
                         <thead>
                             <tr>
                                 <th>Staff Member</th>
                                 <th>Department</th>
-                                <th>Status</th>
+                                <th>Clearance</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td><b>David K.</b><br><span style="font-size: 0.75rem; color: var(--text-muted);">david@rmtinfotech.com</span></td>
+                                <td><b>David K.</b><br><span style="font-size: 0.75rem; color: var(--white-dim);">david@rmtinfotech.com</span></td>
                                 <td>ERP Engineering Lead</td>
-                                <td><span style="color: var(--success); font-weight: 600;">Active</span></td>
+                                <td><span style="color: var(--success); font-weight: 700;">Active</span></td>
                                 <td><button class="btn btn-danger" style="padding: 4px 10px; font-size: 0.75rem;" onclick="removeStaff(this)">Revoke</button></td>
                             </tr>
                             <tr>
-                                <td><b>Rohit Sharma</b><br><span style="font-size: 0.75rem; color: var(--text-muted);">rohit@rmtinfotech.com</span></td>
+                                <td><b>Rohit Sharma</b><br><span style="font-size: 0.75rem; color: var(--white-dim);">rohit@rmtinfotech.com</span></td>
                                 <td>Native Android / Kotlin</td>
-                                <td><span style="color: var(--success); font-weight: 600;">Active</span></td>
+                                <td><span style="color: var(--success); font-weight: 700;">Active</span></td>
                                 <td><button class="btn btn-danger" style="padding: 4px 10px; font-size: 0.75rem;" onclick="removeStaff(this)">Revoke</button></td>
                             </tr>
                         </tbody>
@@ -953,23 +1117,25 @@ $products = [
         </div>
     </div>
 
-    <!-- Footer -->
+    <!-- ================= FOOTER ================= -->
     <footer>
-        <div class="container footer-inner">
+        <div class="container footer-flex">
             <div>
-                © <?= date('Y') ?> <b>RMT INFO TECH</b>. All source rights reserved.
+                © <?= date('Y') ?> <b>RMT INFO TECH</b>. Pure White & Deep Blue Core.
             </div>
-            <div class="footer-links">
+            <div class="footer-nav">
+                <a href="index.php">Home</a>
+                <a href="javascript:void(0)" onclick="openModal('aboutModal')">About Us</a>
+                <a href="javascript:void(0)" onclick="openModal('contactModal')">Contact Us</a>
                 <a href="javascript:void(0)" onclick="setLoginRole('admin'); openModal('loginModal')">Admin Access</a>
                 <a href="javascript:void(0)" onclick="setLoginRole('staff'); openModal('loginModal')">Staff Portal</a>
-                <a href="javascript:void(0)" onclick="openModal('registerModal')">Buyer Verification</a>
             </div>
         </div>
     </footer>
 
-    <!-- JavaScript Handlers -->
+    <!-- ================= SCRIPTS ================= -->
     <script>
-        // Modal Handlers
+        // Modal Controls
         function openModal(id) {
             document.getElementById(id).classList.add('active');
         }
@@ -983,21 +1149,20 @@ $products = [
             openModal(openId);
         }
 
-        // Close modal on click outside
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal-overlay')) {
-                event.target.classList.remove('active');
+        window.onclick = function(e) {
+            if (e.target.classList.contains('modal-overlay')) {
+                e.target.classList.remove('active');
             }
         };
 
-        // Filter Catalog (All / ERP / Website / Mobile)
-        function filterCatalog(category, btnElement) {
-            if (btnElement) {
-                document.querySelectorAll('#catalog-filters .tab-btn').forEach(b => b.classList.remove('active'));
-                btnElement.classList.add('active');
+        // Catalog Filtering
+        function filterCatalog(category, btn) {
+            if (btn) {
+                document.querySelectorAll('#catalog-filters .filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
             }
 
-            const cards = document.querySelectorAll('#productContainer .product-card');
+            const cards = document.querySelectorAll('#productGrid .product-card');
             cards.forEach(card => {
                 if (category === 'all' || card.getAttribute('data-category') === category) {
                     card.style.display = 'flex';
@@ -1007,14 +1172,14 @@ $products = [
             });
         }
 
-        // Role Switcher inside Login Modal
-        function setLoginRole(role, btnElement) {
+        // Role Switching inside Login
+        function setLoginRole(role, tab) {
             document.getElementById('loginSelectedRole').value = role;
             document.getElementById('loginBtnRoleLabel').innerText = role;
 
-            if (btnElement) {
-                document.querySelectorAll('.role-radio-btn').forEach(b => b.classList.remove('active'));
-                btnElement.classList.add('active');
+            if (tab) {
+                document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
             }
 
             const idLabel = document.getElementById('loginIdLabel');
@@ -1031,19 +1196,23 @@ $products = [
         function handleLogin(e) {
             e.preventDefault();
             const role = document.getElementById('loginSelectedRole').value;
-            const identifier = document.getElementById('loginIdentifier').value;
-
-            // Redirects to mock session
             window.location.href = `index.php?mock_role=${role}`;
         }
 
-        // User Registration with OTP
+        // Contact Message Handler
+        function handleContactSubmit(e) {
+            e.preventDefault();
+            alert("Your inquiry has been dispatched to RMT INFO TECH technical engineers.");
+            closeModal('contactModal');
+        }
+
+        // Mobile Phone Registration & OTP Handlers
         let otpCountdown;
         function sendRegistrationOtp(e) {
             e.preventDefault();
             const phone = document.getElementById('regPhone').value;
             if (phone.length !== 10) {
-                alert("Please enter a valid 10-digit mobile phone number.");
+                alert("Please enter a valid 10-digit mobile number.");
                 return;
             }
 
@@ -1051,7 +1220,6 @@ $products = [
             document.getElementById('regStep1').style.display = 'none';
             document.getElementById('regStep2').style.display = 'block';
 
-            // Start countdown
             let seconds = 59;
             const timerEl = document.getElementById('otpTimer');
             clearInterval(otpCountdown);
@@ -1069,19 +1237,19 @@ $products = [
         }
 
         function focusNext(input, index) {
-            const boxes = document.querySelectorAll('.otp-box');
+            const boxes = document.querySelectorAll('.otp-digit');
             if (input.value.length === 1 && index < boxes.length - 1) {
                 boxes[index + 1].focus();
             }
         }
 
         function confirmOtpAndActivate() {
-            const boxes = document.querySelectorAll('.otp-box');
+            const boxes = document.querySelectorAll('.otp-digit');
             let enteredOtp = "";
             boxes.forEach(b => enteredOtp += b.value);
 
             if (enteredOtp.length < 6) {
-                alert("Please enter the complete 6-digit OTP code sent to your phone.");
+                alert("Please enter all 6 digits of the OTP dispatched to your mobile.");
                 return;
             }
 
@@ -1099,9 +1267,9 @@ $products = [
             const table = document.getElementById('staffDirectoryTable').getElementsByTagName('tbody')[0];
             const newRow = table.insertRow();
             newRow.innerHTML = `
-                <td><b>${name}</b><br><span style="font-size: 0.75rem; color: var(--text-muted);">${email}</span></td>
+                <td><b>${name}</b><br><span style="font-size: 0.75rem; color: var(--white-dim);">${email}</span></td>
                 <td>${dept}</td>
-                <td><span style="color: var(--success); font-weight: 600;">Active</span></td>
+                <td><span style="color: var(--success); font-weight: 700;">Active</span></td>
                 <td><button class="btn btn-danger" style="padding: 4px 10px; font-size: 0.75rem;" onclick="removeStaff(this)">Revoke</button></td>
             `;
 
@@ -1112,8 +1280,7 @@ $products = [
 
         function removeStaff(btn) {
             if (confirm("Are you sure you want to revoke this staff member's clearance?")) {
-                const row = btn.closest('tr');
-                row.remove();
+                btn.closest('tr').remove();
             }
         }
     </script>
