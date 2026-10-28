@@ -1,5 +1,5 @@
 <?php
-session_start(); 
+session_start();
 
 // Simulated session store
 if (!isset($_SESSION['user'])) {
@@ -29,14 +29,14 @@ if (isset($_GET['mock_role'])) {
 
 $currentUser = $_SESSION['user'];
 
-// Products Catalog (Websites, ERPs, Mobile Apps)
+// Products Catalog with INR (₹) Currency
 $products = [
     [
         'id' => 1,
         'title' => 'Titan Enterprise Institutional ERP',
         'category' => 'erp',
         'badge' => 'ERP System',
-        'price' => '$399',
+        'price' => '₹29,999',
         'desc' => 'Complete institutional & academy ERP suite with student admissions, fee structures, ID cards, and attendance.',
         'stack' => ['PHP 8.2', 'MySQL', 'Bootstrap 5', 'REST API'],
         'rating' => '4.9/5.0 (42 sales)'
@@ -46,9 +46,9 @@ $products = [
         'title' => 'Nexus Multi-Vendor SaaS Platform',
         'category' => 'website',
         'badge' => 'Website / SaaS',
-        'price' => '$249',
+        'price' => '₹18,499',
         'desc' => 'Turnkey digital marketplace with automated escrow checkout, merchant analytics, and digital asset delivery.',
-        'stack' => ['PHP PDO', 'Tailwind', 'Stripe', 'PayPal'],
+        'stack' => ['PHP PDO', 'Tailwind', 'UPI / Razorpay', 'Stripe'],
         'rating' => '4.8/5.0 (78 sales)'
     ],
     [
@@ -56,7 +56,7 @@ $products = [
         'title' => 'SwiftValet Native Parking Assistant',
         'category' => 'mobile',
         'badge' => 'Mobile App',
-        'price' => '$299',
+        'price' => '₹24,999',
         'desc' => 'High-performance valet parking ticket & dispatch app with QR scanner, offline Room DB, and live sync.',
         'stack' => ['Kotlin', 'Jetpack Compose', 'Room DB', 'PHP API'],
         'rating' => '5.0/5.0 (19 sales)'
@@ -66,8 +66,8 @@ $products = [
         'title' => 'Apex Healthcare & Pharmacy ERP',
         'category' => 'erp',
         'badge' => 'ERP System',
-        'price' => '$450',
-        'desc' => 'HIPAA-ready clinical workflow ERP with OPD/IPD billing, patient bed charts, and batch expiry medicine stock.',
+        'price' => '₹34,500',
+        'desc' => 'HIPAA/NABH-ready clinical workflow ERP with OPD/IPD billing, patient bed charts, and batch expiry medicine stock.',
         'stack' => ['PHP', 'MySQLi', 'JavaScript', 'FPDF'],
         'rating' => '4.9/5.0 (31 sales)'
     ],
@@ -76,7 +76,7 @@ $products = [
         'title' => 'NovaRide Driver & Rider Mobile Suite',
         'category' => 'mobile',
         'badge' => 'Mobile App',
-        'price' => '$349',
+        'price' => '₹27,999',
         'desc' => 'Dual native Android driver and customer apps with real-time GPS tracking and instant fare estimation.',
         'stack' => ['Android SDK', 'Kotlin', 'Google Maps API', 'Firebase'],
         'rating' => '4.7/5.0 (54 sales)'
@@ -86,7 +86,7 @@ $products = [
         'title' => 'CloudPOS Restaurant Billing & Kitchen Display',
         'category' => 'website',
         'badge' => 'Website / SaaS',
-        'price' => '$189',
+        'price' => '₹14,999',
         'desc' => 'Thermal receipt printing, table layout map, real-time KDS screen, and staff shift payroll calculations.',
         'stack' => ['PHP', 'MySQL', 'Alpine.js', 'ESC/POS'],
         'rating' => '4.9/5.0 (96 sales)'
@@ -144,7 +144,6 @@ $products = [
                 linear-gradient(180deg, rgba(3, 9, 30, 0.95) 0%, #03091E 100%);
         }
 
-        /* Scanline ambient glow effect */
         body::before {
             content: " ";
             position: fixed;
@@ -164,7 +163,7 @@ $products = [
             z-index: 2;
         }
 
-        /* ================= ADVANCED FLOATING NAVBAR ================= */
+        /* Navbar */
         .navbar-wrapper {
             position: sticky;
             top: 14px;
@@ -235,7 +234,6 @@ $products = [
             letter-spacing: 1.4px;
         }
 
-        /* Advanced Nav Menu Items */
         .nav-links {
             display: flex;
             align-items: center;
@@ -281,13 +279,13 @@ $products = [
             transform: scaleX(1);
         }
 
-        /* Nav Action Buttons */
         .nav-actions {
             display: flex;
             align-items: center;
             gap: 12px;
         }
 
+        /* Buttons */
         .btn {
             position: relative;
             display: inline-flex;
@@ -305,7 +303,6 @@ $products = [
             border: 1px solid transparent;
         }
 
-        /* Advanced Hover Shimmer effect on buttons */
         .btn::after {
             content: '';
             position: absolute;
@@ -360,7 +357,7 @@ $products = [
             box-shadow: 0 0 18px rgba(255, 51, 102, 0.4);
         }
 
-        /* User Identity Tag */
+        /* User Profile Tag */
         .user-tag {
             display: flex;
             align-items: center;
@@ -384,7 +381,7 @@ $products = [
         .badge-staff { background: #2563EB; color: #FFF; }
         .badge-user { background: #059669; color: #FFF; }
 
-        /* ================= HERO SECTION ================= */
+        /* Hero */
         .hero {
             padding: 70px 0 50px;
             text-align: center;
@@ -427,7 +424,6 @@ $products = [
             margin: 0 auto 36px;
         }
 
-        /* Filter Tabs */
         .catalog-nav {
             display: flex;
             justify-content: center;
@@ -462,7 +458,7 @@ $products = [
             transform: scale(1.03);
         }
 
-        /* ================= PRODUCT CARDS & 3D HOVER ================= */
+        /* Products Grid */
         .product-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
@@ -577,7 +573,7 @@ $products = [
             font-weight: 600;
         }
 
-        /* ================= MODALS & OVERLAYS ================= */
+        /* Modals */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -636,7 +632,6 @@ $products = [
             font-size: 1.8rem;
             cursor: pointer;
             line-height: 1;
-            transition: color 0.2s;
         }
 
         .btn-close:hover {
@@ -647,7 +642,7 @@ $products = [
             padding: 28px;
         }
 
-        /* Form Styles */
+        /* Form elements */
         .field {
             margin-bottom: 18px;
         }
@@ -704,7 +699,6 @@ $products = [
             box-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
         }
 
-        /* OTP Code Blocks */
         .otp-inputs {
             display: flex;
             gap: 10px;
@@ -725,7 +719,6 @@ $products = [
             border-radius: 10px;
         }
 
-        /* Table */
         .modern-table {
             width: 100%;
             border-collapse: collapse;
@@ -747,7 +740,7 @@ $products = [
             letter-spacing: 0.5px;
         }
 
-        /* ================= FOOTER ================= */
+        /* Footer */
         footer {
             border-top: 1px solid var(--border-subtle);
             background: #020617;
@@ -777,7 +770,6 @@ $products = [
             color: var(--neon-blue);
         }
 
-        /* Responsive Mobile Drawer */
         @media (max-width: 900px) {
             .nav-links { display: none; }
             .hero h2 { font-size: 2.6rem; }
@@ -790,7 +782,6 @@ $products = [
     <!-- ================= FLOATING DOCK NAVBAR ================= -->
     <div class="navbar-wrapper">
         <header class="navbar-dock container">
-            <!-- Brand -->
             <a href="index.php" class="brand">
                 <div class="brand-gem">RMT</div>
                 <div class="brand-meta">
@@ -799,7 +790,7 @@ $products = [
                 </div>
             </a>
 
-            <!-- Full Navigation Menu (Home, About Us, Contact Us, Marketplace) -->
+            <!-- Full Navigation Menu -->
             <nav>
                 <ul class="nav-links">
                     <li><a href="index.php" class="nav-link active">Home</a></li>
@@ -843,7 +834,6 @@ $products = [
             <h2>Next-Gen Codebases,<br><span class="gradient-text">Instant Deployment.</span></h2>
             <p>Direct ownership of production-ready Web platforms, institutional ERP architectures, and native Android mobile apps with verified escrow transfer.</p>
 
-            <!-- Catalog Category Filter -->
             <div class="catalog-nav" id="catalog-filters">
                 <button class="filter-btn active" onclick="filterCatalog('all', this)">All Solutions</button>
                 <button class="filter-btn" onclick="filterCatalog('erp', this)">Institutional ERPs</button>
@@ -873,7 +863,7 @@ $products = [
                     </div>
                     <div class="card-footer">
                         <span class="rating-badge">★ <?= $p['rating'] ?></span>
-                        <button class="btn btn-white" style="padding: 8px 16px; font-size: 0.85rem;" onclick="alert('Proceeding to live demo and escrow checkout for: <?= addslashes($p['title']) ?>')">
+                        <button class="btn btn-white" style="padding: 8px 16px; font-size: 0.85rem;" onclick="alert('Proceeding to live demo and escrow checkout for: <?= addslashes($p['title']) ?> (<?= $p['price'] ?>)')">
                             Acquire Now →
                         </button>
                     </div>
@@ -893,14 +883,14 @@ $products = [
             </div>
             <div class="modal-content">
                 <p style="color: var(--white-muted); margin-bottom: 16px; font-size: 0.95rem;">
-                    <b>RMT INFO TECH</b> is a premier software architecture exchange platform designed to bridge technical creators with institutions and enterprises.
+                    <b>RMT INFO TECH</b> is an enterprise digital marketplace connecting technical innovators with institutions, startups, and companies across India and worldwide.
                 </p>
                 <div style="background: #03091E; border: 1px solid var(--border-subtle); padding: 18px; border-radius: 12px; margin-bottom: 20px;">
-                    <div style="color: var(--neon-blue); font-weight: 700; margin-bottom: 6px;">✦ Our Core Verticals:</div>
+                    <div style="color: var(--neon-blue); font-weight: 700; margin-bottom: 6px;">✦ Core Solutions Available in INR (₹):</div>
                     <ul style="color: var(--white-dim); font-size: 0.9rem; padding-left: 20px; line-height: 1.8;">
-                        <li><b>Institutional ERP Systems:</b> Comprehensive school, institute, and hospital platforms.</li>
-                        <li><b>Websites & SaaS Products:</b> Complete turnkey marketplaces and POS tools.</li>
-                        <li><b>Native Mobile Apps:</b> Kotlin Jetpack Compose and Android SDK software.</li>
+                        <li><b>Institutional ERP Systems:</b> Complete school, university, and hospital management software.</li>
+                        <li><b>Web & SaaS Platforms:</b> Turnkey digital marketplaces, eCommerce, and billing POS systems.</li>
+                        <li><b>Native Android Mobile Apps:</b> Kotlin Jetpack Compose and offline-first Room DB apps.</li>
                     </ul>
                 </div>
                 <button class="btn btn-white" style="width: 100%;" onclick="closeModal('aboutModal')">Close Window</button>
@@ -923,11 +913,11 @@ $products = [
                     </div>
                     <div class="field">
                         <label>Contact Email or Phone Number</label>
-                        <input type="text" class="input-box" placeholder="e.g. john@example.com or +91..." required>
+                        <input type="text" class="input-box" placeholder="e.g. +91 98765 43210 or user@example.com" required>
                     </div>
                     <div class="field">
-                        <label>Project Inquiry or Message</label>
-                        <textarea class="textarea-box" rows="4" placeholder="How can our technical team assist you?" required></textarea>
+                        <label>Project Inquiry or Custom Requirements</label>
+                        <textarea class="textarea-box" rows="4" placeholder="Describe the software, ERP, or mobile app solution you need..." required></textarea>
                     </div>
                     <button type="submit" class="btn btn-white" style="width: 100%;">Transmit Message →</button>
                 </form>
@@ -935,7 +925,7 @@ $products = [
         </div>
     </div>
 
-    <!-- 3. LOGIN MODAL (Admin / Staff / User) -->
+    <!-- 3. LOGIN MODAL -->
     <div class="modal-overlay" id="loginModal">
         <div class="modal-box">
             <div class="modal-head">
@@ -943,7 +933,6 @@ $products = [
                 <button class="btn-close" onclick="closeModal('loginModal')">&times;</button>
             </div>
             <div class="modal-content">
-                <!-- Role selector -->
                 <div class="role-switch">
                     <div class="role-tab active" onclick="setLoginRole('user', this)">User</div>
                     <div class="role-tab" onclick="setLoginRole('staff', this)">Staff</div>
@@ -976,7 +965,7 @@ $products = [
         </div>
     </div>
 
-    <!-- 4. USER REGISTRATION + MANDATORY PHONE OTP -->
+    <!-- 4. REGISTRATION WITH MANDATORY PHONE OTP -->
     <div class="modal-overlay" id="registerModal">
         <div class="modal-box">
             <div class="modal-head">
@@ -984,7 +973,6 @@ $products = [
                 <button class="btn-close" onclick="closeModal('registerModal')">&times;</button>
             </div>
             <div class="modal-content">
-                <!-- Step 1: Info Form -->
                 <div id="regStep1">
                     <form onsubmit="sendRegistrationOtp(event)">
                         <div class="field">
@@ -1017,7 +1005,6 @@ $products = [
                     </form>
                 </div>
 
-                <!-- Step 2: OTP Entry -->
                 <div id="regStep2" style="display: none; text-align: center;">
                     <div style="font-size: 2.2rem; margin-bottom: 10px;">📱</div>
                     <h4 style="font-size: 1.2rem; margin-bottom: 6px;">SMS Security Verification</h4>
@@ -1050,7 +1037,7 @@ $products = [
         </div>
     </div>
 
-    <!-- 5. ADMIN STAFF CONTROL & ADD STAFF -->
+    <!-- 5. ADMIN STAFF ROSTER & ADD STAFF -->
     <div class="modal-overlay" id="adminStaffModal">
         <div class="modal-box wide">
             <div class="modal-head">
@@ -1058,7 +1045,6 @@ $products = [
                 <button class="btn-close" onclick="closeModal('adminStaffModal')">&times;</button>
             </div>
             <div class="modal-content">
-                <!-- Add Staff Option -->
                 <div style="background: #03091E; border: 1px solid var(--border-subtle); border-radius: 14px; padding: 22px; margin-bottom: 24px;">
                     <h4 style="color: var(--neon-blue); margin-bottom: 14px; font-size: 1.05rem;">+ Add New Staff Member</h4>
                     <form onsubmit="handleCreateStaff(event)" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; align-items: end;">
@@ -1085,7 +1071,6 @@ $products = [
                     </form>
                 </div>
 
-                <!-- Existing Staff Directory -->
                 <h4 style="font-size: 1rem; margin-bottom: 8px;">Active Staff Directory</h4>
                 <div style="overflow-x: auto;">
                     <table class="modern-table" id="staffDirectoryTable">
@@ -1135,7 +1120,6 @@ $products = [
 
     <!-- ================= SCRIPTS ================= -->
     <script>
-        // Modal Controls
         function openModal(id) {
             document.getElementById(id).classList.add('active');
         }
@@ -1155,7 +1139,6 @@ $products = [
             }
         };
 
-        // Catalog Filtering
         function filterCatalog(category, btn) {
             if (btn) {
                 document.querySelectorAll('#catalog-filters .filter-btn').forEach(b => b.classList.remove('active'));
@@ -1172,7 +1155,6 @@ $products = [
             });
         }
 
-        // Role Switching inside Login
         function setLoginRole(role, tab) {
             document.getElementById('loginSelectedRole').value = role;
             document.getElementById('loginBtnRoleLabel').innerText = role;
@@ -1192,21 +1174,18 @@ $products = [
             }
         }
 
-        // Mock Login Execution
         function handleLogin(e) {
             e.preventDefault();
             const role = document.getElementById('loginSelectedRole').value;
             window.location.href = `index.php?mock_role=${role}`;
         }
 
-        // Contact Message Handler
         function handleContactSubmit(e) {
             e.preventDefault();
             alert("Your inquiry has been dispatched to RMT INFO TECH technical engineers.");
             closeModal('contactModal');
         }
 
-        // Mobile Phone Registration & OTP Handlers
         let otpCountdown;
         function sendRegistrationOtp(e) {
             e.preventDefault();
@@ -1257,7 +1236,6 @@ $products = [
             window.location.href = "index.php?mock_role=user";
         }
 
-        // Admin: Add Staff Handler
         function handleCreateStaff(e) {
             e.preventDefault();
             const name = document.getElementById('staffName').value;
